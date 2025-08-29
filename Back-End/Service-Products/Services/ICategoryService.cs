@@ -1,0 +1,12 @@
+﻿using Service.Products.Models;
+
+namespace Service.Products.Services;
+
+public interface ICategoryService
+{
+    Task<IEnumerable<Category>> GetAllAsync(int page, int pageSize);
+    Task<Category?> GetByIdAsync(Guid id);
+    Task<Category> CreateAsync(Category category);
+    Task<Category> UpdateAsync(Guid id, Category category);
+    Task DeleteAsync(Guid id);
+}
