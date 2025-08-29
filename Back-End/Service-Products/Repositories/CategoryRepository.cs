@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Service.Products.Models;
+using Service.Products.DTOs;
 using Service.Products.Data;
 
 namespace Service.Products.Repositories;
@@ -10,9 +11,22 @@ public sealed class CategoryRepository : ICategoryRepository
 
     public CategoryRepository(AppDbContext context) => _context = context;
 
-    public async Task<IEnumerable<Category>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResult<Category>> GetAllAsync(int page, int pageSize)
     {
-        return await _context.Categories.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var total = await _context.Categories.CountAsync();
+
+        var items = await _context.Categories
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Category>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            Total = total
+        };
     }
 
     public async Task<Category?> GetByIdAsync(Guid id)

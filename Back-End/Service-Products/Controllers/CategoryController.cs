@@ -14,7 +14,7 @@ public sealed class CategoryController : ControllerBase
     public CategoryController(ICategoryService service) => _service = service;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Category>>> GetAll(int page = 1, int pageSize = 10)
+    public async Task<ActionResult<PagedResult<Category>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         return Ok(await _service.GetAllAsync(page, pageSize));
     }
@@ -41,7 +41,7 @@ public sealed class CategoryController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<Category>> Update(Guid id, [FromBody] CategoryDto request)
+    public async Task<ActionResult<Category>> Update([FromRoute] Guid id, [FromBody] CategoryDto request)
     {
         var cx = new Category
         {
@@ -52,7 +52,7 @@ public sealed class CategoryController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
         await _service.DeleteAsync(id);
         return NoContent();
