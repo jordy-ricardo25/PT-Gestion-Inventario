@@ -18,7 +18,12 @@ export function ProductForm({ product, onDone }: { product?: Product; onDone?: (
     error: catError,
   } = useQuery({
     queryKey: ['categories'],
-    queryFn: async (): Promise<CategoryOption[]> => (await api.get('/category')).data,
+    queryFn: async (): Promise<CategoryOption[]> => {
+      const res = await api.get('/categories');
+      const raw = res.data;
+      const list = Array.isArray(raw) ? raw : raw.items ?? [];
+      return list.map((c: any) => ({ id: c.id, name: c.name }));
+    },
     staleTime: 5 * 60 * 1000,
   });
 

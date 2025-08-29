@@ -1,5 +1,6 @@
 ﻿using Service.Products.Repositories;
 using Service.Products.Models;
+using Service.Products.DTOs;
 
 namespace Service.Products.Services;
 
@@ -9,7 +10,7 @@ public sealed class CategoryService : ICategoryService
 
     public CategoryService(ICategoryRepository repo) => _repo = repo;
 
-    public Task<IEnumerable<Category>> GetAllAsync(int page, int pageSize)
+    public Task<PagedResult<Category>> GetAllAsync(int page, int pageSize)
     {
         return _repo.GetAllAsync(page, pageSize);
     }
