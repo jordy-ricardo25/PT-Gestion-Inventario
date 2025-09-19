@@ -10,9 +10,9 @@ public sealed class ProductService : IProductService
 
     public ProductService(IProductRepository repo) => _repo = repo;
 
-    public Task<PagedResult<Product>> GetAllAsync(int page, int pageSize)
+    public Task<PagedResult<Product>> GetAllAsync(int page, int pageSize, string query)
     {
-        return _repo.GetAllAsync(page, pageSize);
+        return _repo.GetAllAsync(page, pageSize, query);
     }
 
     public Task<Product?> GetByIdAsync(Guid id)

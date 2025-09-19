@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useDebounce } from 'use-debounce';
 import { useQuery } from '@tanstack/react-query';
 import {
   ColumnDef,
@@ -24,7 +25,9 @@ export function ProductTable({ onEdit, onDelete }: Props) {
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [query, setQuery] = React.useState('');
+
+  const [search, setSearch] = React.useState('');
+  const [query] = useDebounce(search, 500);
 
   const sort = sorting[0]?.id;
   const order = sorting[0]?.desc ? 'desc' : 'asc';
@@ -105,11 +108,11 @@ export function ProductTable({ onEdit, onDelete }: Props) {
       <div className="flex items-center justify-between gap-3">
         <input
           className="border rounded p-2 w-full max-w-sm"
-          placeholder="Buscar por nombre, SKU…"
-          value={query}
+          placeholder="Buscar por nombre..."
+          value={search}
           onChange={(e) => {
             setPage(1);
-            setQuery(e.target.value);
+            setSearch(e.target.value);
           }}
         />
         <div className="flex items-center gap-2">

@@ -11,11 +11,12 @@ public sealed class ProductRepository : IProductRepository
 
     public ProductRepository(AppDbContext context) => _context = context;
 
-    public async Task<PagedResult<Product>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResult<Product>> GetAllAsync(int page, int pageSize, string query)
     {
         var total = await _context.Products.CountAsync();
 
         var items = await _context.Products
+            .Where(p => p.Name.ToLower().Contains(query.ToLower()))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

@@ -17,6 +17,8 @@ export async function GET(req: NextRequest) {
   if (order) upstream.searchParams.set('order', order);
   if (q) upstream.searchParams.set('q', q);
 
+  console.log(`URL: ${upstream}`);
+
   const r = await fetch(upstream, { cache: 'no-store' });
 
   if (!r.ok) {

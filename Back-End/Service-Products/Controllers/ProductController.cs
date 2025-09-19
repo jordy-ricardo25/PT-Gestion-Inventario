@@ -14,9 +14,9 @@ public sealed class ProductController : ControllerBase
     public ProductController(IProductService service) => _service = service;
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<Product>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<PagedResult<Product>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string q = "")
     {
-        return Ok(await _service.GetAllAsync(page, pageSize));
+        return Ok(await _service.GetAllAsync(page, pageSize, q));
     }
 
     [HttpGet("{id}")]
