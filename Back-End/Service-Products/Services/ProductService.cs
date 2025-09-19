@@ -6,28 +6,36 @@ namespace Service.Products.Services;
 
 public sealed class ProductService : IProductService
 {
-    private readonly IProductRepository _repo;
+    private readonly IProductRepository _productRepository;
 
-    public ProductService(IProductRepository repo) => _repo = repo;
+    public ProductService(IProductRepository repo)
+    {
+        _productRepository = repo;
+    }
 
     public Task<PagedResult<Product>> GetAllAsync(int page, int pageSize, string query)
     {
-        return _repo.GetAllAsync(page, pageSize, query);
+        return _productRepository.GetAllAsync(page, pageSize, query);
+    }
+
+    public Task<PagedResult<Product>> GetByCategoryAsync(Guid id, int page, int pageSize)
+    {
+        return _productRepository.GetByCategoryAsync(id, page, pageSize);
     }
 
     public Task<Product?> GetByIdAsync(Guid id)
     {
-        return _repo.GetByIdAsync(id);
+        return _productRepository.GetByIdAsync(id);
     }
 
     public Task<Product> CreateAsync(Product producto)
     {
-        return _repo.AddAsync(producto);
+        return _productRepository.AddAsync(producto);
     }
 
     public async Task<Product> UpdateAsync(Guid id, Product producto)
     {
-        var existing = await _repo.GetByIdAsync(id) ?? throw new Exception("Producto no encontrado");
+        var existing = await _productRepository.GetByIdAsync(id) ?? throw new Exception("Producto no encontrado");
 
         existing.Name = producto.Name;
         existing.Description = producto.Description;
@@ -36,11 +44,11 @@ public sealed class ProductService : IProductService
         existing.Stock = producto.Stock;
         existing.CategoryId = producto.CategoryId;
 
-        return await _repo.UpdateAsync(existing);
+        return await _productRepository.UpdateAsync(existing);
     }
 
     public async Task DeleteAsync(Guid id)
     {
-        await _repo.DeleteAsync(id);
+        await _productRepository.DeleteAsync(id);
     }
 }

@@ -2,6 +2,7 @@
 using Service.Products.Models;
 using Service.Products.DTOs;
 using Service.Products.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Service.Products.Repositories;
 
@@ -17,6 +18,25 @@ public sealed class ProductRepository : IProductRepository
 
         var items = await _context.Products
             .Where(p => p.Name.ToLower().Contains(query.ToLower()))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Product>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            Total = total
+        };
+    }
+
+    public async Task<PagedResult<Product>> GetByCategoryAsync(Guid id, int page, int pageSize)
+    {
+        var total = await _context.Products.CountAsync();
+
+        var items = await _context.Products
+            .Where(p => p.CategoryId == id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

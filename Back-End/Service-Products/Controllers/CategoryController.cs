@@ -9,24 +9,42 @@ namespace Service.Products.Controllers;
 [Route("api/[controller]")]
 public sealed class CategoryController : ControllerBase
 {
-    private readonly ICategoryService _service;
+    private readonly ICategoryService _categoryService;
+    private readonly IProductService _productService;
 
-    public CategoryController(ICategoryService service) => _service = service;
+    public CategoryController(ICategoryService categoryService, IProductService productService)
+    {
+        _categoryService = categoryService;
+        _productService = productService;
+    }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<Category>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<PagedResult<Category>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        return Ok(await _service.GetAllAsync(page, pageSize));
+        return Ok(await _categoryService.GetAllAsync(page, pageSize));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Category>> GetById(Guid id)
+    public async Task<ActionResult<Category>> GetById([FromRoute] Guid id)
     {
-        var category = await _service.GetByIdAsync(id);
+        var category = await _categoryService.GetByIdAsync(id);
 
         if (category is null) return NotFound();
 
         return Ok(category);
+    }
+
+    [HttpGet("{id}/products")]
+    public async Task<ActionResult<PagedResult<Product>>> GetProductsByCategory(
+        [FromRoute] Guid id,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        var products = await _productService.GetByCategoryAsync(id, page, pageSize);
+
+        return Ok(products);
     }
 
     [HttpPost]
@@ -37,24 +55,26 @@ public sealed class CategoryController : ControllerBase
             Name = request.Name
         };
 
-        return Ok(await _service.CreateAsync(cx));
+        return Ok(await _categoryService.CreateAsync(cx));
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<Category>> Update([FromRoute] Guid id, [FromBody] CategoryDto request)
+    public async Task<ActionResult<Category>> Update(
+        [FromRoute] Guid id,
+        [FromBody] CategoryDto request)
     {
         var cx = new Category
         {
             Name = request.Name
         };
 
-        return Ok(await _service.UpdateAsync(id, cx));
+        return Ok(await _categoryService.UpdateAsync(id, cx));
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        await _service.DeleteAsync(id);
+        await _categoryService.DeleteAsync(id);
         return NoContent();
     }
 }

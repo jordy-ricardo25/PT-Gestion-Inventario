@@ -7,6 +7,8 @@ public interface IProductService
 {
     Task<PagedResult<Product>> GetAllAsync(int page, int pageSize, string query);
 
+    Task<PagedResult<Product>> GetByCategoryAsync(Guid id, int page, int pageSize);
+
     Task<Product?> GetByIdAsync(Guid id);
 
     Task<Product> CreateAsync(Product producto);
