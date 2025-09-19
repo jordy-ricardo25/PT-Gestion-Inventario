@@ -21,9 +21,10 @@ public sealed class CategoryController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PagedResult<Category>>> GetAll(
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string q = "")
     {
-        return Ok(await _categoryService.GetAllAsync(page, pageSize));
+        return Ok(await _categoryService.GetAllAsync(page, pageSize, q));
     }
 
     [HttpGet("{id}")]
@@ -31,9 +32,7 @@ public sealed class CategoryController : ControllerBase
     {
         var category = await _categoryService.GetByIdAsync(id);
 
-        if (category is null) return NotFound();
-
-        return Ok(category);
+        return category is null ? NotFound() : Ok(category);
     }
 
     [HttpGet("{id}/products")]

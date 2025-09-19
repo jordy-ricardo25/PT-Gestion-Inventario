@@ -5,7 +5,7 @@ namespace Service.Products.Repositories;
 
 public interface ICategoryRepository
 {
-    Task<PagedResult<Category>> GetAllAsync(int page, int pageSize);
+    Task<PagedResult<Category>> GetAllAsync(int page, int pageSize, string query);
     Task<Category?> GetByIdAsync(Guid id);
     Task<Category> AddAsync(Category category);
     Task<Category> UpdateAsync(Category category);

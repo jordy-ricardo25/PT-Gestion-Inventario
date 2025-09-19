@@ -9,13 +9,17 @@ public sealed class CategoryRepository : ICategoryRepository
 {
     private readonly AppDbContext _context;
 
-    public CategoryRepository(AppDbContext context) => _context = context;
+    public CategoryRepository(AppDbContext context)
+    {
+        _context = context;
+    }
 
-    public async Task<PagedResult<Category>> GetAllAsync(int page, int pageSize)
+    public async Task<PagedResult<Category>> GetAllAsync(int page, int pageSize, string query)
     {
         var total = await _context.Categories.CountAsync();
 
         var items = await _context.Categories
+            .Where(c => c.Name.ToLower().Contains(query.ToLower()))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

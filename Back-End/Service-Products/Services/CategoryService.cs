@@ -6,36 +6,39 @@ namespace Service.Products.Services;
 
 public sealed class CategoryService : ICategoryService
 {
-    private readonly ICategoryRepository _repo;
+    private readonly ICategoryRepository _categoryRepository;
 
-    public CategoryService(ICategoryRepository repo) => _repo = repo;
-
-    public Task<PagedResult<Category>> GetAllAsync(int page, int pageSize)
+    public CategoryService(ICategoryRepository categoryRepository)
     {
-        return _repo.GetAllAsync(page, pageSize);
+        _categoryRepository = categoryRepository;
+    }
+
+    public Task<PagedResult<Category>> GetAllAsync(int page, int pageSize, string query)
+    {
+        return _categoryRepository.GetAllAsync(page, pageSize, query);
     }
 
     public Task<Category?> GetByIdAsync(Guid id)
     {
-        return _repo.GetByIdAsync(id);
+        return _categoryRepository.GetByIdAsync(id);
     }
 
     public Task<Category> CreateAsync(Category category)
     {
-        return _repo.AddAsync(category);
+        return _categoryRepository.AddAsync(category);
     }
 
     public async Task<Category> UpdateAsync(Guid id, Category category)
     {
-        var existing = await _repo.GetByIdAsync(id) ?? throw new Exception("Categoría no encontrada");
+        var existing = await _categoryRepository.GetByIdAsync(id) ?? throw new Exception("Categoría no encontrada");
 
         existing.Name = category.Name;
 
-        return await _repo.UpdateAsync(existing);
+        return await _categoryRepository.UpdateAsync(existing);
     }
 
     public Task DeleteAsync(Guid id)
     {
-        return _repo.DeleteAsync(id);
+        return _categoryRepository.DeleteAsync(id);
     }
 }
