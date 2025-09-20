@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Service.Transactions.DTOs;
 
 namespace Service.Transactions.Models;
 

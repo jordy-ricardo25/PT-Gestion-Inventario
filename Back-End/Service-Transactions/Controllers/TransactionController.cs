@@ -14,9 +14,17 @@ public sealed class TransactionController : ControllerBase
     public TransactionController(ITransactionService service) => _service = service;
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Transaction>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<ActionResult<PagedResult<Transaction>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string query = "",
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        [FromQuery] TransactionType? type = null)
     {
-        return Ok(await _service.GetAllAsync(page, pageSize));
+        if (page <= 0 || pageSize <= 0) return BadRequest("page y pageSize deben ser > 0.");
+
+        return Ok(await _service.GetAllAsync(page, pageSize, query, from, to, type));
     }
 
     [HttpGet("{id}")]
@@ -28,17 +36,14 @@ public sealed class TransactionController : ControllerBase
     }
 
     [HttpGet("by-product/{productId}")]
-    public async Task<ActionResult<IEnumerable<Transaction>>> GetByProduct(
+    public async Task<ActionResult<PagedResult<Transaction>>> GetByProduct(
         [FromRoute] Guid productId,
-        [FromQuery] DateTime? from,
-        [FromQuery] DateTime? to,
-        [FromQuery] TransactionType? type,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 10)
     {
         if (page <= 0 || pageSize <= 0) return BadRequest("page y pageSize deben ser > 0.");
-        var items = await _service.GetByProductAsync(productId, from, to, type, page, pageSize);
-        return Ok(items);
+
+        return Ok(await _service.GetByProductAsync(productId, page, pageSize));
     }
 
     [HttpPost]

@@ -16,9 +16,15 @@ public sealed class TransactionService : ITransactionService
         _products = products;
     }
 
-    public Task<PagedResult<Transaction>> GetAllAsync(int page, int pageSize)
+    public Task<PagedResult<Transaction>> GetAllAsync(
+        int page,
+        int pageSize,
+        string query = "",
+        DateTime? from = null,
+        DateTime? to = null,
+        TransactionType? type = null)
     {
-        return _repo.GetAllAsync(page, pageSize);
+        return _repo.GetAllAsync(page, pageSize, query, from, to, type);
     }
 
     public Task<Transaction?> GetByIdAsync(Guid id)
@@ -26,11 +32,12 @@ public sealed class TransactionService : ITransactionService
         return _repo.GetByIdAsync(id);
     }
 
-    public Task<IEnumerable<Transaction>> GetByProductAsync(
-        Guid productId, DateTime? from = null, DateTime? to = null,
-        TransactionType? type = null, int page = 1, int pageSize = 20)
+    public Task<PagedResult<Transaction>> GetByProductAsync(
+        Guid productId,
+        int page = 1,
+        int pageSize = 20)
     {
-        return _repo.GetByProductAsync(productId, from, to, type, page, pageSize);
+        return _repo.GetByProductAsync(productId, page, pageSize);
     }
 
     public async Task<Transaction> CreateAsync(Transaction tx)
@@ -38,12 +45,13 @@ public sealed class TransactionService : ITransactionService
         if (tx.TotalPrice <= 0m) tx.TotalPrice = tx.UnitPrice * tx.Quantity;
 
         var product = await _products.GetByIdAsync(tx.ProductId)
-                      ?? throw new InvalidOperationException("Producto no encontrado en el microservicio de Products.");
+            ?? throw new InvalidOperationException("Producto no encontrado en el microservicio de Products.");
 
         if (!product.IsActive)
             throw new InvalidOperationException("El producto no está activo.");
 
         AdjustStockResponse stockResp;
+
         if (tx.Type == TransactionType.Sale)
         {
             stockResp = await _products.DecreaseStockAsync(

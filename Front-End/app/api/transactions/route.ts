@@ -4,18 +4,21 @@ const BASE = process.env.INTERNAL_TRANSACTIONS_API!;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
+
   const page = Number(searchParams.get('page') ?? 1);
   const pageSize = Number(searchParams.get('pageSize') ?? 10);
   const sort = searchParams.get('sort') ?? '';
   const order = searchParams.get('order') ?? '';
-  const q = searchParams.get('q') ?? '';
+  const q = searchParams.get('query') ?? '';
 
   const upstream = new URL(`${BASE}/Transaction`);
+
   upstream.searchParams.set('page', String(page));
   upstream.searchParams.set('pageSize', String(pageSize));
+
   if (sort) upstream.searchParams.set('sort', sort);
   if (order) upstream.searchParams.set('order', order);
-  if (q) upstream.searchParams.set('q', q);
+  if (q) upstream.searchParams.set('query', q);
 
   const r = await fetch(upstream, { cache: 'no-store' });
 

@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { ListFilter } from 'lucide-react';
+import { useDebounce } from 'use-debounce';
 import { useQuery } from '@tanstack/react-query';
 import {
   ColumnDef,
@@ -14,6 +16,7 @@ import {
 import { api } from '@lib/api';
 import { PagedResult } from '@lib/types/PagedResult{T}';
 import { Transaction } from '@/lib/types/Transaction';
+import { Product } from '@lib/types/Product';
 import { typeLabel, typeFromServer } from '@lib/types/TransactionType';
 
 type Props = {
@@ -24,7 +27,9 @@ export function TransactionTable({ onDelete }: Props) {
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [query, setQuery] = React.useState('');
+
+  const [search, setSearch] = React.useState('');
+  const [query] = useDebounce(search, 500);
 
   const sort = sorting[0]?.id;
   const order = sorting[0]?.desc ? 'desc' : 'asc';
@@ -38,10 +43,23 @@ export function TransactionTable({ onDelete }: Props) {
       });
       if (sort) params.set('sort', sort);
       if (sort) params.set('order', order);
-      if (query) params.set('q', query);
+      if (query) params.set('query', query);
 
-      const res = await api.get(`/transactions?${params.toString()}`);
-      return res.data as PagedResult<Transaction>;
+      const res1 = await api.get('/products');
+      const data1 = res1.data as PagedResult<Product>;
+
+      const res2 = await api.get(`/transactions?${params.toString()}`);
+      const data2 = res2.data as PagedResult<Transaction>;
+
+      return {
+        ...data2,
+        items: data2.items.map(tx => ({
+          ...tx,
+          product: tx.productId ? data1.items.find(
+            px => px.id == tx.productId
+          ) ?? null : null
+        }))
+      };
     },
   });
 
@@ -115,15 +133,20 @@ export function TransactionTable({ onDelete }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <input
-          className="border rounded p-2 w-full max-w-sm"
-          placeholder="Buscar por producto o detalle…"
-          value={query}
-          onChange={(e) => {
-            setPage(1);
-            setQuery(e.target.value);
-          }}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            className="border rounded p-2 w-full max-w-sm"
+            placeholder="Buscar por detalle…"
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+          />
+          <button className="rounded border p-2 hover:bg-neutral-100">
+            <ListFilter size={24} />
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <label className="text-sm">Filas:</label>
           <select
