@@ -26,11 +26,12 @@ type Props = {
     to?: Date;
     type?: number;
   } | null;
+  onEdit: (p: Transaction) => void;
   onDelete: (t: Transaction) => void;
   onFilter: () => void;
 };
 
-export function TransactionTable({ filters, onDelete, onFilter }: Props) {
+export function TransactionTable({ filters, onEdit, onDelete, onFilter }: Props) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -114,6 +115,11 @@ export function TransactionTable({ filters, onDelete, onFilter }: Props) {
         const t = ctx.row.original;
         return (
           <div className="flex justify-end gap-2">
+            <button className="px-3 py-1 rounded bg-neutral-200"
+              onClick={() => onEdit(t)}
+            >
+              Editar
+            </button>
             <button
               className="px-3 py-1 rounded bg-red-600 text-white"
               onClick={() => onDelete(t)}
@@ -124,7 +130,7 @@ export function TransactionTable({ filters, onDelete, onFilter }: Props) {
         );
       },
     },
-  ], [onDelete]);
+  ], [onEdit, onDelete]);
 
   const table = useReactTable({
     data: data?.items ?? [],

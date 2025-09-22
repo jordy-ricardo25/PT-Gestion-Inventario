@@ -53,19 +53,19 @@ public sealed class TransactionRepository : ITransactionRepository
         return _context.Transactions.FirstOrDefaultAsync(t => t.Id == id)!;
     }
 
-    public async Task<Transaction> AddAsync(Transaction tx)
+    public async Task<Transaction> AddAsync(Transaction transaction)
     {
-        _context.Transactions.Add(tx);
+        _context.Transactions.Add(transaction);
         await _context.SaveChangesAsync();
-        return tx;
+        return transaction;
     }
 
-    //public async Task<Transaction> UpdateAsync(Transaction tx)
-    //{
-    //    _context.Transactions.Update(tx);
-    //    await _context.SaveChangesAsync();
-    //    return tx;
-    //}
+    public async Task<Transaction> UpdateAsync(Transaction transaction)
+    {
+        _context.Transactions.Update(transaction);
+        await _context.SaveChangesAsync();
+        return transaction;
+    }
 
     public async Task DeleteAsync(Guid id)
     {

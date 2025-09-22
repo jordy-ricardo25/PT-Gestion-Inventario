@@ -86,10 +86,14 @@ export function ProductTable({ filters, onEdit, onDelete, onFilter }: Props) {
         const p = ctx.row.original;
         return (
           <div className="flex justify-end gap-2">
-            <button className="px-3 py-1 rounded bg-neutral-200" onClick={() => onEdit(p)}>
+            <button className="px-3 py-1 rounded bg-neutral-200"
+              onClick={() => onEdit(p)}
+            >
               Editar
             </button>
-            <button className="px-3 py-1 rounded bg-red-600 text-white" onClick={() => onDelete(p)}>
+            <button className="px-3 py-1 rounded bg-red-600 text-white"
+              onClick={() => onDelete(p)}
+            >
               Eliminar
             </button>
           </div>

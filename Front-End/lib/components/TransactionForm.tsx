@@ -7,11 +7,21 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { transactionFormSchema, TransactionFormValues } from '@lib/validators';
 import { TransactionType, typeToServer } from '@lib/types/TransactionType';
+import { Transaction } from '@lib/types/Transaction';
 import { api } from '@lib/api';
 
-type ProductOption = { id: string; name: string; price: number };
+type Props = {
+  transaction?: Transaction;
+  onDone?: () => void;
+};
 
-export function TransactionForm({ onDone }: { onDone?: () => void }) {
+type ProductOption = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+export function TransactionForm({ transaction, onDone }: Props) {
   const qc = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -27,8 +37,14 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
 
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema) as any,
+    values: transaction
+      ? {
+        ...transaction,
+        type: transaction.type.toString()
+      } as any
+      : undefined,
     defaultValues: {
-      type: 'Purchase' as TransactionType,
+      type: '1',
       quantity: 1,
       detail: '',
     },
@@ -38,8 +54,12 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
 
   const mutation = useMutation({
     mutationFn: async (values: TransactionFormValues) => {
-      const payload = { ...values, type: typeToServer(values.type) };
+      const payload = {
+        ...values,
+        type: Number(values.type)
+      }
 
+      if (transaction) return (await api.put(`/transactions/${transaction.id}`, payload)).data;
       return (await api.post('/transactions', payload)).data;
     },
     onSuccess: async () => {
@@ -51,7 +71,7 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
       if (error.response?.data?.message) {
         setFormError(error.response.data.message);
       } else {
-        setFormError("Ocurrió un error inesperado al crear la transacción.");
+        setFormError(`Ocurrió un error inesperado al ${transaction ? 'actualizar' : 'crear'} la transacción.`);
       }
     }
   });
@@ -67,6 +87,7 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         ) : (
           <select
             className="w-full border p-2 rounded"
+            disabled={transaction != undefined}
             defaultValue={''}
             {...register('productId')}
             onChange={(e) => {
@@ -86,7 +107,7 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         )}
         {errors.productId && (
           <p className="text-red-600 text-sm">
-            {String((errors as any).productId.message)} ?? 'Producto inválido'
+            {errors.productId.message}
           </p>
         )}
       </div>
@@ -95,12 +116,17 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         <label className="block text-sm font-medium mb-1">Tipo</label>
         <select
           className="w-full border p-2 rounded"
+          disabled={transaction != undefined}
           {...register('type')}
-          onChange={(e) => setValue('type', e.target.value as 'Purchase' | 'Sale')}
         >
-          <option value="Purchase">Compra</option>
-          <option value="Sale">Venta</option>
+          <option value="1">Compra</option>
+          <option value="2">Venta</option>
         </select>
+        {errors.type && (
+          <p className="text-red-600 text-sm">
+            {errors.type.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -110,6 +136,7 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
           type="number"
           min={1}
           step={1}
+          disabled={transaction != undefined}
           {...register('quantity', { valueAsNumber: true })}
         />
         {errors.quantity && (
@@ -119,23 +146,24 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-      <textarea
-        className="w-full border p-2 rounded"
-        placeholder="Detalle (opcional)"
-        {...register('detail')}
-      />
-
-      {formError && (
-        <div className="p-2 rounded bg-red-100 text-red-700 text-sm">
-          {formError}
-        </div>
-      )}
+      <div>
+        <textarea
+          className="w-full border p-2 rounded"
+          placeholder="Detalle (opcional)"
+          {...register('detail')}
+        />
+        {formError && (
+          <div className="p-2 rounded bg-red-100 text-red-700 text-sm">
+            {formError}
+          </div>
+        )}
+      </div>
 
       <button
         disabled={mutation.isPending}
         className="px-4 py-2 rounded bg-neutral-900 text-white"
       >
-        {mutation.isPending ? 'Guardando…' : 'Crear transacción'}
+        {mutation.isPending ? 'Guardando…' : transaction ? 'Actualizar' : 'Crear transacción'}
       </button>
     </form>
   );

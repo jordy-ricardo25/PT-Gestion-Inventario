@@ -1,12 +1,14 @@
 'use client';
+
 import { useState } from 'react';
 
 import { ProductTable } from '@lib/components/ProductTable';
 import { ProductForm } from '@lib/components/ProductForm';
-import { Product } from '@lib/types/Product';
 import { ProductDelete } from '@/lib/components/ProductDelete';
 import { Dialog } from '@/lib/components/Dialog';
+
 import { ProductFilter } from '@/lib/components/ProductFilter';
+import { Product } from '@lib/types/Product';
 
 export default function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
@@ -71,7 +73,10 @@ export default function ProductsPage() {
         <Dialog
           title="Eliminar producto"
           content={(
-            <ProductDelete product={deleting} onClose={() => { setDeleting(null) }} />
+            <ProductDelete
+              product={deleting}
+              onClose={() => { setDeleting(null) }}
+            />
           )}
         />
       )}

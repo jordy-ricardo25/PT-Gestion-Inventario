@@ -7,9 +7,17 @@ import { ProductFormValues, productFormSchema } from '@lib/validators';
 import { Product } from '@/lib/types/Product';
 import { api } from '@lib/api';
 
-type CategoryOption = { id: number; name: string };
+type Props = {
+  product?: Product;
+  onDone?: () => void;
+};
 
-export function ProductForm({ product, onDone }: { product?: Product; onDone?: () => void }) {
+type CategoryOption = {
+  id: number;
+  name: string;
+};
+
+export function ProductForm({ product, onDone }: Props) {
   const qc = useQueryClient();
 
   const {
@@ -36,7 +44,10 @@ export function ProductForm({ product, onDone }: { product?: Product; onDone?: (
   } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema) as any,
     values: product
-      ? ({ ...product, categoryId: product.categoryId ?? undefined } as any)
+      ? {
+        ...product,
+        categoryId: product.categoryId ?? undefined
+      } as any
       : undefined,
   });
 

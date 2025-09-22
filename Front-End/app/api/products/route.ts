@@ -55,7 +55,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const r = await fetch(`${BASE}/Product`, { method: 'POST', body, headers: { 'Content-Type': 'application/json' } });
+  const r = await fetch(`${BASE}/Product`, { method: 'POST', body: await req.text(), headers: { 'Content-Type': 'application/json' } });
   return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': 'application/json' } });
 }

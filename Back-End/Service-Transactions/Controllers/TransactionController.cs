@@ -51,8 +51,7 @@ public sealed class TransactionController : ControllerBase
 
         try
         {
-            var created = await _service.CreateAsync(tx);
-            return Ok(created);
+            return Ok(await _service.CreateAsync(tx));
         }
         catch (InvalidOperationException ex)
         {
@@ -64,27 +63,49 @@ public sealed class TransactionController : ControllerBase
         }
     }
 
-    //[HttpPut("{id}")]
-    //public async Task<ActionResult<Transaction>> Update([FromRoute] Guid id, [FromBody] TransactionDto request)
-    //{
-    //    var tx = new Transaction
-    //    {
-    //        Date = request.Date ?? DateTime.UtcNow,
-    //        Type = request.Type,
-    //        ProductId = request.ProductId,
-    //        Quantity = request.Quantity,
-    //        UnitPrice = request.UnitPrice,
-    //        TotalPrice = request.TotalPrice ?? 0m,
-    //        Detail = request.Detail
-    //    };
+    [HttpPut("{id}")]
+    public async Task<ActionResult<Transaction>> Update([FromRoute] Guid id, [FromBody] TransactionDto request)
+    {
+        // En teoría desde la UI solo permito editar "Detail", de momento me parto la cabeza pensando en
+        // validar el cambio de "Type" y que la cantidad esté disponible... se puede, pero con un poco más de tiempo.
+        var tx = new Transaction
+        {
+            Detail = request.Detail
+        };
 
-    //    return Ok(await _service.UpdateAsync(id, tx));
-    //}
+        try
+        {
+            return Ok(await _service.UpdateAsync(id, tx));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al actualizar la transacción." });
+        }
+    }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        await _service.DeleteAsync(id);
-        return NoContent();
+        try
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al eliminar la transacción." });
+        }
     }
 }

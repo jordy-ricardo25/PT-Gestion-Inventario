@@ -33,11 +33,11 @@ public sealed class TransactionService : ITransactionService
         return _repo.GetByIdAsync(id);
     }
 
-    public async Task<Transaction> CreateAsync(Transaction tx)
+    public async Task<Transaction> CreateAsync(Transaction transaction)
     {
-        if (tx.TotalPrice <= 0m) tx.TotalPrice = tx.UnitPrice * tx.Quantity;
+        if (transaction.TotalPrice <= 0m) transaction.TotalPrice = transaction.UnitPrice * transaction.Quantity;
 
-        var product = await _products.GetByIdAsync(tx.ProductId)
+        var product = await _products.GetByIdAsync(transaction.ProductId)
             ?? throw new InvalidOperationException("Producto no encontrado en el microservicio de Products.");
 
         if (!product.IsActive)
@@ -45,70 +45,35 @@ public sealed class TransactionService : ITransactionService
 
         AdjustStockResponse stockResp;
 
-        if (tx.Type == TransactionType.Sale)
+        if (transaction.Type == TransactionType.Sale)
         {
             stockResp = await _products.DecreaseStockAsync(
-                new AdjustStockRequest { ProductId = tx.ProductId, Quantity = tx.Quantity, Reason = "sale" });
+                new AdjustStockRequest { ProductId = transaction.ProductId, Quantity = transaction.Quantity, Reason = "sale" });
         }
         else
         {
             stockResp = await _products.IncreaseStockAsync(
-                new AdjustStockRequest { ProductId = tx.ProductId, Quantity = tx.Quantity, Reason = "purchase" });
+                new AdjustStockRequest { ProductId = transaction.ProductId, Quantity = transaction.Quantity, Reason = "purchase" });
         }
 
         if (!stockResp.Success)
             throw new InvalidOperationException(stockResp.Error ?? "No se pudo ajustar el stock.");
 
-        return await _repo.AddAsync(tx);
+        return await _repo.AddAsync(transaction);
     }
 
-    //public async Task<Transaction> UpdateAsync(Guid id, Transaction tx)
-    //{
-    //    var existing = await _repo.GetByIdAsync(id) ?? throw new InvalidOperationException("Transacción no encontrada.");
+    public async Task<Transaction> UpdateAsync(Guid id, Transaction transaction)
+    {
+        var existing = await _repo.GetByIdAsync(id) ?? throw new KeyNotFoundException("Transacción no encontrada");
 
-    //    if (existing.Type == TransactionType.Sale)
-    //    {
-    //        var resp = await _products.IncreaseStockAsync(
-    //            new AdjustStockRequest { ProductId = existing.ProductId, Quantity = existing.Quantity, Reason = "revert-sale-edit" }, ct);
-    //        if (!resp.Success) throw new InvalidOperationException(resp.Error ?? "No se pudo revertir stock anterior.");
-    //    }
-    //    else
-    //    {
-    //        var resp = await _products.DecreaseStockAsync(
-    //            new AdjustStockRequest { ProductId = existing.ProductId, Quantity = existing.Quantity, Reason = "revert-purchase-edit" }, ct);
-    //        if (!resp.Success) throw new InvalidOperationException(resp.Error ?? "No se pudo revertir stock anterior.");
-    //    }
+        existing.Detail = transaction.Detail;
 
-    //    existing.Date = tx.Date;
-    //    existing.Type = tx.Type;
-    //    existing.ProductId = tx.ProductId;
-    //    existing.Quantity = tx.Quantity;
-    //    existing.UnitPrice = tx.UnitPrice;
-    //    existing.TotalPrice = tx.TotalPrice > 0m ? tx.TotalPrice : tx.UnitPrice * tx.Quantity;
-    //    existing.Detail = tx.Detail;
-
-    //    AdjustStockResponse applyResp;
-    //    if (existing.Type == TransactionType.Sale)
-    //    {
-    //        applyResp = await _products.DecreaseStockAsync(
-    //            new AdjustStockRequest { ProductId = existing.ProductId, Quantity = existing.Quantity, Reason = "apply-sale-edit" }, ct);
-    //    }
-    //    else
-    //    {
-    //        applyResp = await _products.IncreaseStockAsync(
-    //            new AdjustStockRequest { ProductId = existing.ProductId, Quantity = existing.Quantity, Reason = "apply-purchase-edit" }, ct);
-    //    }
-
-    //    if (!applyResp.Success)
-    //        throw new InvalidOperationException(applyResp.Error ?? "No se pudo ajustar el stock para la nueva transacción.");
-
-    //    return await _repo.UpdateAsync(existing);
-    //}
+        return await _repo.UpdateAsync(existing);
+    }
 
     public async Task DeleteAsync(Guid id)
     {
-        var existing = await _repo.GetByIdAsync(id);
-        if (existing is null) return;
+        var existing = await _repo.GetByIdAsync(id) ?? throw new KeyNotFoundException("Transacción no encontrada"); ;
 
         if (existing.Type == TransactionType.Sale)
         {

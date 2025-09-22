@@ -17,7 +17,7 @@ export type ProductFormValues = z.infer<typeof productFormSchema>;
 
 export const transactionFormSchema = z.object({
   productId: z.uuid().optional().nullable(),
-  type: z.enum(["Purchase", "Sale"]),
+  type: z.string(),
   quantity: z.coerce
     .number()
     .int()
