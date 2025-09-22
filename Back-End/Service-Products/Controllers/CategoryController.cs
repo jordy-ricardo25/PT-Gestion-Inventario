@@ -54,13 +54,39 @@ public sealed class CategoryController : ControllerBase
             Name = request.Name
         };
 
-        return Ok(await _service.UpdateAsync(id, cx));
+        try
+        {
+            return Ok(await _service.UpdateAsync(id, cx));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al actualizar la categoría." });
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        await _service.DeleteAsync(id);
-        return NoContent();
+        try
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al eliminar la categoría." });
+        }
     }
 }

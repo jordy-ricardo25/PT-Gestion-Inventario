@@ -9,11 +9,11 @@ namespace Service.Products.Controllers;
 [Route("api/[controller]")]
 public sealed class ProductController : ControllerBase
 {
-    private readonly IProductService _productService;
+    private readonly IProductService _service;
 
-    public ProductController(IProductService productService)
+    public ProductController(IProductService service)
     {
-        _productService = productService;
+        _service = service;
     }
 
     [HttpGet]
@@ -25,13 +25,13 @@ public sealed class ProductController : ControllerBase
         [FromQuery] int? min = null,
         [FromQuery] int? max = null)
     {
-        return Ok(await _productService.GetAllAsync(page, pageSize, q, categoryId, min, max));
+        return Ok(await _service.GetAllAsync(page, pageSize, q, categoryId, min, max));
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<Product>> GetById([FromRoute] Guid id)
     {
-        var px = await _productService.GetByIdAsync(id);
+        var px = await _service.GetByIdAsync(id);
 
         return px is null ? NotFound() : Ok(px);
     }
@@ -50,7 +50,7 @@ public sealed class ProductController : ControllerBase
             CategoryId = request.CategoryId
         };
 
-        return Ok(await _productService.CreateAsync(px));
+        return Ok(await _service.CreateAsync(px));
     }
 
     [HttpPut("{id}")]
@@ -69,13 +69,35 @@ public sealed class ProductController : ControllerBase
             CategoryId = request.CategoryId
         };
 
-        return Ok(await _productService.UpdateAsync(id, px));
+        try
+        {
+            return Ok(await _service.UpdateAsync(id, px));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al actualizar el producto." });
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        await _productService.DeleteAsync(id);
-        return NoContent();
+        try
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al eliminar el producto." });
+        }
     }
 }

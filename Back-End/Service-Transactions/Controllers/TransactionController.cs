@@ -11,7 +11,10 @@ public sealed class TransactionController : ControllerBase
 {
     private readonly ITransactionService _service;
 
-    public TransactionController(ITransactionService service) => _service = service;
+    public TransactionController(ITransactionService service)
+    {
+        _service = service;
+    }
 
     [HttpGet]
     public async Task<ActionResult<PagedResult<Transaction>>> GetAll(
@@ -81,7 +84,7 @@ public sealed class TransactionController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { message = "Ocurrió un error inesperado al actualizar la transacción." });
         }

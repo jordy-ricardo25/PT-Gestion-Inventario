@@ -64,7 +64,8 @@ public sealed class TransactionService : ITransactionService
 
     public async Task<Transaction> UpdateAsync(Guid id, Transaction transaction)
     {
-        var existing = await _repo.GetByIdAsync(id) ?? throw new KeyNotFoundException("Transacción no encontrada");
+        var existing = await _repo.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException("Transacción no encontrada");
 
         existing.Detail = transaction.Detail;
 
