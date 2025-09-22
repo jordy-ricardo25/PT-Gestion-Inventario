@@ -22,9 +22,10 @@ public sealed class TransactionService : ITransactionService
         string query = "",
         DateTime? from = null,
         DateTime? to = null,
-        TransactionType? type = null)
+        TransactionType? type = null,
+        Guid? productId = null)
     {
-        return _repo.GetAllAsync(page, pageSize, query, from, to, type);
+        return _repo.GetAllAsync(page, pageSize, query, from, to, type, productId);
     }
 
     public Task<Transaction?> GetByIdAsync(Guid id)

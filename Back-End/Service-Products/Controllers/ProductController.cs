@@ -20,9 +20,12 @@ public sealed class ProductController : ControllerBase
     public async Task<ActionResult<PagedResult<Product>>> GetAll(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
-        [FromQuery] string q = "")
+        [FromQuery] string q = "",
+        [FromQuery] Guid? categoryId = null,
+        [FromQuery] int? min = null,
+        [FromQuery] int? max = null)
     {
-        return Ok(await _productService.GetAllAsync(page, pageSize, q));
+        return Ok(await _productService.GetAllAsync(page, pageSize, q, categoryId, min, max));
     }
 
     [HttpGet("{id}")]

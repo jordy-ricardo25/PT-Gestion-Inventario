@@ -13,9 +13,15 @@ public sealed class ProductService : IProductService
         _productRepository = repo;
     }
 
-    public Task<PagedResult<Product>> GetAllAsync(int page, int pageSize, string query)
+    public Task<PagedResult<Product>> GetAllAsync(
+        int page,
+        int pageSize,
+        string query,
+        Guid? categoryId = null,
+        int? min = null,
+        int? max = null)
     {
-        return _productRepository.GetAllAsync(page, pageSize, query);
+        return _productRepository.GetAllAsync(page, pageSize, query, categoryId, min, max);
     }
 
     public Task<PagedResult<Product>> GetByCategoryAsync(Guid id, int page, int pageSize)

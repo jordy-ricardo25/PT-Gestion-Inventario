@@ -11,7 +11,8 @@ public interface ITransactionRepository
         string query = "",
         DateTime? from = null,
         DateTime? to = null,
-        TransactionType? type = null);
+        TransactionType? type = null,
+        Guid? productId = null);
 
     Task<Transaction?> GetByIdAsync(Guid id);
 

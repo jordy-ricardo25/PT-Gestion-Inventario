@@ -165,7 +165,7 @@ export function CategoryTable({ onDelete }: Props) {
 
       <div className="flex items-center justify-end gap-2">
         <button
-          className="px-3 py-1 rounded border"
+          className="px-3 py-1 rounded border disabled:hidden"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={data.page === 1}
         >
@@ -175,7 +175,7 @@ export function CategoryTable({ onDelete }: Props) {
           Página {data.page} de {Math.max(1, Math.ceil(data.total / data.pageSize))}
         </span>
         <button
-          className="px-3 py-1 rounded border"
+          className="px-3 py-1 rounded border disabled:opacity-50"
           onClick={() => setPage((p) => p + 1)}
           disabled={data.page * data.pageSize >= data.total}
         >

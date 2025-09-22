@@ -1,6 +1,7 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useMemo } from 'react';
+import { ListFilter } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -17,23 +18,29 @@ import { Product } from '@/lib/types/Product';
 import { PagedResult } from '@lib/types/PagedResult{T}';
 
 type Props = {
+  filters: {
+    categoryId?: string;
+    min?: number;
+    max?: number;
+  } | null;
   onEdit: (p: Product) => void;
   onDelete: (p: Product) => void;
+  onFilter: () => void;
 };
 
-export function ProductTable({ onEdit, onDelete }: Props) {
-  const [page, setPage] = React.useState(1);
-  const [pageSize, setPageSize] = React.useState(10);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+export function ProductTable({ filters, onEdit, onDelete, onFilter }: Props) {
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = useState('');
   const [query] = useDebounce(search, 500);
 
   const sort = sorting[0]?.id;
   const order = sorting[0]?.desc ? 'desc' : 'asc';
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['products', page, pageSize, sort, order, query],
+    queryKey: ['products', page, pageSize, sort, order, query, filters],
     queryFn: async (): Promise<PagedResult<Product>> => {
       const params = new URLSearchParams({
         page: String(page),
@@ -43,12 +50,16 @@ export function ProductTable({ onEdit, onDelete }: Props) {
       if (sort) params.set('order', order);
       if (query) params.set('q', query);
 
+      if (filters?.categoryId) params.set('categoryId', filters.categoryId);
+      if (filters?.min) params.set('min', filters.min.toString());
+      if (filters?.max) params.set('max', filters.max.toString());
+
       const res = await api.get(`/products?${params.toString()}`);
       return res.data;
     },
   });
 
-  const columns = React.useMemo<ColumnDef<Product>[]>(() => [
+  const columns = useMemo<ColumnDef<Product>[]>(() => [
     {
       accessorKey: 'name',
       header: 'Nombre',
@@ -106,15 +117,21 @@ export function ProductTable({ onEdit, onDelete }: Props) {
   return (
     <div className="space-y-3 w-full">
       <div className="flex items-center justify-between gap-3">
-        <input
-          className="border rounded p-2 w-full max-w-sm"
-          placeholder="Buscar por nombre..."
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-        />
+        <div className="flex items-center gap-2">
+          <input
+            className="border rounded p-2 w-full max-w-sm"
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+          />
+          <button className="rounded border p-2"
+            onClick={() => onFilter()}>
+            <ListFilter size={24} />
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           <label className="text-sm">Filas:</label>
           <select
@@ -178,7 +195,7 @@ export function ProductTable({ onEdit, onDelete }: Props) {
 
       <div className="flex items-center justify-end gap-2">
         <button
-          className="px-3 py-1 rounded border"
+          className="px-3 py-1 rounded border disabled:hidden"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={page === 1}
         >
@@ -188,7 +205,7 @@ export function ProductTable({ onEdit, onDelete }: Props) {
           Página {data.page} de {Math.max(1, Math.ceil(data.total / data.pageSize))}
         </span>
         <button
-          className="px-3 py-1 rounded border"
+          className="px-3 py-1 rounded border disabled:opacity-50"
           onClick={() => setPage((p) => p + 1)}
           disabled={data.page * data.pageSize >= data.total}
         >

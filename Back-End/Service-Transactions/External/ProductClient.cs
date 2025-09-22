@@ -28,10 +28,12 @@ public sealed class ProductClient : IProductClient
     private async Task<AdjustStockResponse> ChangeStockAsync(Guid productId, int delta)
     {
         var product = await GetByIdAsync(productId);
+
         if (product is null)
             return new AdjustStockResponse { Success = false, Error = "Producto no encontrado." };
 
         var newStock = product.Stock + delta;
+
         if (newStock < 0)
         {
             return new AdjustStockResponse

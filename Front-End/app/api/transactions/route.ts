@@ -11,6 +11,11 @@ export async function GET(req: NextRequest) {
   const order = searchParams.get('order') ?? '';
   const q = searchParams.get('query') ?? '';
 
+  const from = searchParams.get('from') ?? '';
+  const to = searchParams.get('to') ?? '';
+  const type = searchParams.get('type') ?? '';
+  const productId = searchParams.get('productId') ?? '';
+
   const upstream = new URL(`${BASE}/Transaction`);
 
   upstream.searchParams.set('page', String(page));
@@ -19,6 +24,11 @@ export async function GET(req: NextRequest) {
   if (sort) upstream.searchParams.set('sort', sort);
   if (order) upstream.searchParams.set('order', order);
   if (q) upstream.searchParams.set('query', q);
+
+  if (from) upstream.searchParams.set('from', from);
+  if (to) upstream.searchParams.set('to', to);
+  if (type) upstream.searchParams.set('type', type);
+  if (productId) upstream.searchParams.set('productId', productId);
 
   const r = await fetch(upstream, { cache: 'no-store' });
 

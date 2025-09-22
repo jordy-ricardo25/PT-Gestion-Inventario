@@ -1,9 +1,11 @@
 'use client';
+
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { transactionSchema, TransactionFormValues } from '@lib/validators';
+import { transactionFormSchema, TransactionFormValues } from '@lib/validators';
 import { TransactionType, typeToServer } from '@lib/types/TransactionType';
 import { api } from '@lib/api';
 
@@ -12,7 +14,7 @@ type ProductOption = { id: string; name: string; price: number };
 export function TransactionForm({ onDone }: { onDone?: () => void }) {
   const qc = useQueryClient();
 
-  const { data: products, isLoading: prodLoading, error: prodError } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['products', 'for-transaction-form'],
     queryFn: async (): Promise<ProductOption[]> => {
       const res = await api.get('/products');
@@ -24,20 +26,19 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
   });
 
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema) as any,
+    resolver: zodResolver(transactionFormSchema) as any,
     defaultValues: {
-      date: new Date(),
       type: 'Purchase' as TransactionType,
       quantity: 1,
       detail: '',
     },
   });
 
+  const [formError, setFormError] = useState<string | null>(null);
+
   const mutation = useMutation({
     mutationFn: async (values: TransactionFormValues) => {
       const payload = { ...values, type: typeToServer(values.type) };
-
-      console.log(payload)
 
       return (await api.post('/transactions', payload)).data;
     },
@@ -46,15 +47,22 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
       onDone?.();
       reset();
     },
+    onError: (error: any) => {
+      if (error.response?.data?.message) {
+        setFormError(error.response.data.message);
+      } else {
+        setFormError("Ocurrió un error inesperado al crear la transacción.");
+      }
+    }
   });
 
   return (
-    <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
+    <form className="space-y-3" onSubmit={handleSubmit((v) => mutation.mutate(v))}>
       <div>
         <label className="block text-sm font-medium mb-1">Producto</label>
-        {prodLoading ? (
+        {isLoading ? (
           <div className="text-sm text-neutral-500">Cargando productos…</div>
-        ) : prodError ? (
+        ) : error ? (
           <div className="text-sm text-red-600">Error al cargar productos</div>
         ) : (
           <select
@@ -63,13 +71,13 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
             {...register('productId')}
             onChange={(e) => {
               setValue('productId', e.target.value || undefined)
-              setValue('unitPrice', products?.find(
+              setValue('unitPrice', data?.find(
                 (p) => p.id === e.target.value
               )?.price || 0)
             }}
           >
             <option value="">Seleccione…</option>
-            {products?.map((p) => (
+            {data?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
@@ -116,6 +124,12 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         placeholder="Detalle (opcional)"
         {...register('detail')}
       />
+
+      {formError && (
+        <div className="p-2 rounded bg-red-100 text-red-700 text-sm">
+          {formError}
+        </div>
+      )}
 
       <button
         disabled={mutation.isPending}

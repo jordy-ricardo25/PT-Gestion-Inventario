@@ -17,16 +17,19 @@ public sealed class TransactionRepository : ITransactionRepository
         string query = "",
         DateTime? from = null,
         DateTime? to = null,
-        TransactionType? type = null)
-    {        var q = _context.Transactions.AsQueryable().Where(
+        TransactionType? type = null,
+        Guid? productId = null)
+    {
+        var q = _context.Transactions.AsQueryable().Where(
             t => (t.Detail ?? "").ToLower().Contains(
                 query.ToLower()
             )
         );
 
-        if (from.HasValue) q = q.Where(t => t.Date >= from.Value);
-        if (to.HasValue) q = q.Where(t => t.Date <= to.Value);
-        if (type.HasValue) q.Where(t => t.Type == type.Value);
+        if (from.HasValue) q = q.Where(t => t.Date >= from.Value.Date);
+        if (to.HasValue) q = q.Where(t => t.Date <= to.Value.Date);
+        if (type.HasValue) q = q.Where(t => t.Type == type.Value);
+        if (productId.HasValue) q = q.Where(t => t.ProductId == productId.Value);
 
         var total = await q.CountAsync();
 

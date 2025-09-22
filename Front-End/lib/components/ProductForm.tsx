@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { ProductFormValues, productSchema } from '@lib/validators';
+import { ProductFormValues, productFormSchema } from '@lib/validators';
 import { Product } from '@/lib/types/Product';
 import { api } from '@lib/api';
 
@@ -34,7 +34,7 @@ export function ProductForm({ product, onDone }: { product?: Product; onDone?: (
     reset,
     setValue,
   } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema) as any,
+    resolver: zodResolver(productFormSchema) as any,
     values: product
       ? ({ ...product, categoryId: product.categoryId ?? undefined } as any)
       : undefined,

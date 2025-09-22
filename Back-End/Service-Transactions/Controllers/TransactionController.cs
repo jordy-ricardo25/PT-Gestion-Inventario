@@ -20,11 +20,12 @@ public sealed class TransactionController : ControllerBase
         [FromQuery] string query = "",
         [FromQuery] DateTime? from = null,
         [FromQuery] DateTime? to = null,
-        [FromQuery] TransactionType? type = null)
+        [FromQuery] TransactionType? type = null,
+        [FromQuery] Guid? productId = null)
     {
         if (page <= 0 || pageSize <= 0) return BadRequest("page y pageSize deben ser > 0.");
 
-        return Ok(await _service.GetAllAsync(page, pageSize, query, from, to, type));
+        return Ok(await _service.GetAllAsync(page, pageSize, query, from, to, type, productId));
     }
 
     [HttpGet("{id}")]
@@ -51,7 +52,7 @@ public sealed class TransactionController : ControllerBase
     {
         var tx = new Transaction
         {
-            Date = request.Date ?? DateTime.UtcNow,
+            Date = DateTime.UtcNow,
             Type = request.Type,
             ProductId = request.ProductId,
             Quantity = request.Quantity,
@@ -59,7 +60,19 @@ public sealed class TransactionController : ControllerBase
             Detail = request.Detail
         };
 
-        return Ok(await _service.CreateAsync(tx));
+        try
+        {
+            var created = await _service.CreateAsync(tx);
+            return Ok(created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al crear la transacción." });
+        }
     }
 
     //[HttpPut("{id}")]
