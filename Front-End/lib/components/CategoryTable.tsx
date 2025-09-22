@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useDebounce } from 'use-debounce';
 import { useQuery } from '@tanstack/react-query';
 import {
   ColumnDef,
@@ -23,7 +24,9 @@ export function CategoryTable({ onDelete }: Props) {
   const [page, setPage] = React.useState(1);
   const [pageSize, setPageSize] = React.useState(10);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [query, setQuery] = React.useState('');
+
+  const [search, setSearch] = React.useState('');
+  const [query] = useDebounce(search, 500);
 
   const sort = sorting[0]?.id;
   const order = sorting[0]?.desc ? 'desc' : 'asc';
@@ -93,10 +96,10 @@ export function CategoryTable({ onDelete }: Props) {
         <input
           className="border rounded p-2 w-full max-w-sm"
           placeholder="Buscar por nombre…"
-          value={query}
+          value={search}
           onChange={(e) => {
             setPage(1);
-            setQuery(e.target.value);
+            setSearch(e.target.value);
           }}
         />
         <div className="flex items-center gap-2">
@@ -162,7 +165,7 @@ export function CategoryTable({ onDelete }: Props) {
 
       <div className="flex items-center justify-end gap-2">
         <button
-          className="px-3 py-1 rounded border"
+          className="px-3 py-1 rounded border disabled:hidden"
           onClick={() => setPage((p) => Math.max(1, p - 1))}
           disabled={data.page === 1}
         >
@@ -172,7 +175,7 @@ export function CategoryTable({ onDelete }: Props) {
           Página {data.page} de {Math.max(1, Math.ceil(data.total / data.pageSize))}
         </span>
         <button
-          className="px-3 py-1 rounded border"
+          className="px-3 py-1 rounded border disabled:opacity-50"
           onClick={() => setPage((p) => p + 1)}
           disabled={data.page * data.pageSize >= data.total}
         >

@@ -9,13 +9,30 @@ public sealed class ProductRepository : IProductRepository
 {
     private readonly AppDbContext _context;
 
-    public ProductRepository(AppDbContext context) => _context = context;
-
-    public async Task<PagedResult<Product>> GetAllAsync(int page, int pageSize)
+    public ProductRepository(AppDbContext context)
     {
-        var total = await _context.Products.CountAsync();
+        _context = context;
+    }
 
-        var items = await _context.Products
+    public async Task<PagedResult<Product>> GetAllAsync(
+        int page,
+        int pageSize,
+        string query,
+        Guid? categoryId = null,
+        int? min = null,
+        int? max = null)
+    {
+        var q = _context.Products.AsQueryable().Where(
+            p => p.Name.ToLower().Contains(query.ToLower())
+        );
+
+        if (categoryId.HasValue) q = q.Where(p => p.CategoryId == categoryId.Value);
+        if (min.HasValue) q = q.Where(p => p.Price >= min.Value);
+        if (max.HasValue) q = q.Where(p => p.Price <= max.Value);
+
+        var total = await q.CountAsync();
+
+        var items = await q
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();

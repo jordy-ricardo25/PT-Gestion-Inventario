@@ -162,13 +162,21 @@ npm run dev
 ![Creación de productos](docs/Creacion-Productos.png)
 ![Edición de productos](docs/Edicion-Productos.png)
 ![Eliminado de productos](docs/Eliminacion-Productos.png)
+![Búsqueda de productos](docs/Busqueda-Productos.png)
 
 - **Transacciones**: listado dinámico con paginación, crear, eliminar
 ![Listado de transacciones](docs/Listado-Transacciones.png)
 ![Creación de transacciones](docs/Creacion-Transacciones.png)
+![Edición de transacciones](docs/Edicion-Transacciones.png)
 ![Eliminado de transacciones](docs/Eliminacion-Transacciones.png)
+![Búsqueda de transacciones](docs/Busqueda-Transacciones.png)
 
 - **Filtros**: por fechas y tipo (compra/venta)
+![Filtrado de transacciones](docs/Filtrado-Transacciones.png)
+![Filtrado de transacciones](docs/Filtrado-Productos.png)
+
+- **Validaciones**: disponibilidad de stock
+![Validación de stock](docs/Validacion-Stock.png)
 
 ---
 
@@ -195,7 +203,12 @@ Ajusta tipos si cambias de DBMS (por ejemplo, GUID/UUID, decimal, etc.).
 
 - [x] Listados dinámicos con paginación (productos y transacciones)
 - [x] CRUD de productos y transacciones
-- [ ] Filtros avanzados por fechas y tipo de transacción
+- [x] Filtros avanzados por fechas y tipo de transacción
+- [x] Filtros avanzados por precio y categoría de producto
+- [x] Búsqueda de productos por nombre
+- [x] Búsqueda de categorias por nombre
+- [x] Búsqueda de transacciones por detalle
+- [x] Validación de stock y reporte al usuario
 - [x] Validaciones (no vender stock inexistente, formularios, etc.)
 - [x] APIs RESTful por microservicio
 - [x] Script SQL `schema.sql` en la raíz

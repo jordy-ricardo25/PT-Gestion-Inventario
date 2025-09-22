@@ -1,18 +1,30 @@
 'use client';
+
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { transactionSchema, TransactionFormValues } from '@lib/validators';
+import { transactionFormSchema, TransactionFormValues } from '@lib/validators';
 import { TransactionType, typeToServer } from '@lib/types/TransactionType';
+import { Transaction } from '@lib/types/Transaction';
 import { api } from '@lib/api';
 
-type ProductOption = { id: string; name: string; price: number };
+type Props = {
+  transaction?: Transaction;
+  onDone?: () => void;
+};
 
-export function TransactionForm({ onDone }: { onDone?: () => void }) {
+type ProductOption = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+export function TransactionForm({ transaction, onDone }: Props) {
   const qc = useQueryClient();
 
-  const { data: products, isLoading: prodLoading, error: prodError } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['products', 'for-transaction-form'],
     queryFn: async (): Promise<ProductOption[]> => {
       const res = await api.get('/products');
@@ -24,21 +36,30 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
   });
 
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema) as any,
+    resolver: zodResolver(transactionFormSchema) as any,
+    values: transaction
+      ? {
+        ...transaction,
+        type: transaction.type.toString()
+      } as any
+      : undefined,
     defaultValues: {
-      date: new Date(),
-      type: 'Purchase' as TransactionType,
+      type: '1',
       quantity: 1,
       detail: '',
     },
   });
 
+  const [formError, setFormError] = useState<string | null>(null);
+
   const mutation = useMutation({
     mutationFn: async (values: TransactionFormValues) => {
-      const payload = { ...values, type: typeToServer(values.type) };
+      const payload = {
+        ...values,
+        type: Number(values.type)
+      }
 
-      console.log(payload)
-
+      if (transaction) return (await api.put(`/transactions/${transaction.id}`, payload)).data;
       return (await api.post('/transactions', payload)).data;
     },
     onSuccess: async () => {
@@ -46,30 +67,38 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
       onDone?.();
       reset();
     },
+    onError: (error: any) => {
+      if (error.response?.data?.message) {
+        setFormError(error.response.data.message);
+      } else {
+        setFormError(`Ocurrió un error inesperado al ${transaction ? 'actualizar' : 'crear'} la transacción.`);
+      }
+    }
   });
 
   return (
-    <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
+    <form className="space-y-3" onSubmit={handleSubmit((v) => mutation.mutate(v))}>
       <div>
         <label className="block text-sm font-medium mb-1">Producto</label>
-        {prodLoading ? (
+        {isLoading ? (
           <div className="text-sm text-neutral-500">Cargando productos…</div>
-        ) : prodError ? (
+        ) : error ? (
           <div className="text-sm text-red-600">Error al cargar productos</div>
         ) : (
           <select
             className="w-full border p-2 rounded"
+            disabled={transaction != undefined}
             defaultValue={''}
             {...register('productId')}
             onChange={(e) => {
               setValue('productId', e.target.value || undefined)
-              setValue('unitPrice', products?.find(
+              setValue('unitPrice', data?.find(
                 (p) => p.id === e.target.value
               )?.price || 0)
             }}
           >
             <option value="">Seleccione…</option>
-            {products?.map((p) => (
+            {data?.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
@@ -78,7 +107,7 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         )}
         {errors.productId && (
           <p className="text-red-600 text-sm">
-            {String((errors as any).productId.message)} ?? 'Producto inválido'
+            {errors.productId.message}
           </p>
         )}
       </div>
@@ -87,12 +116,17 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         <label className="block text-sm font-medium mb-1">Tipo</label>
         <select
           className="w-full border p-2 rounded"
+          disabled={transaction != undefined}
           {...register('type')}
-          onChange={(e) => setValue('type', e.target.value as 'Purchase' | 'Sale')}
         >
-          <option value="Purchase">Compra</option>
-          <option value="Sale">Venta</option>
+          <option value="1">Compra</option>
+          <option value="2">Venta</option>
         </select>
+        {errors.type && (
+          <p className="text-red-600 text-sm">
+            {errors.type.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -102,6 +136,7 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
           type="number"
           min={1}
           step={1}
+          disabled={transaction != undefined}
           {...register('quantity', { valueAsNumber: true })}
         />
         {errors.quantity && (
@@ -111,17 +146,24 @@ export function TransactionForm({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-      <textarea
-        className="w-full border p-2 rounded"
-        placeholder="Detalle (opcional)"
-        {...register('detail')}
-      />
+      <div>
+        <textarea
+          className="w-full border p-2 rounded"
+          placeholder="Detalle (opcional)"
+          {...register('detail')}
+        />
+        {formError && (
+          <div className="p-2 rounded bg-red-100 text-red-700 text-sm">
+            {formError}
+          </div>
+        )}
+      </div>
 
       <button
         disabled={mutation.isPending}
         className="px-4 py-2 rounded bg-neutral-900 text-white"
       >
-        {mutation.isPending ? 'Guardando…' : 'Crear transacción'}
+        {mutation.isPending ? 'Guardando…' : transaction ? 'Actualizar' : 'Crear transacción'}
       </button>
     </form>
   );

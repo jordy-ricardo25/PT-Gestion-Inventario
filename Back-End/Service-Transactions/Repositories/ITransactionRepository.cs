@@ -5,21 +5,20 @@ namespace Service.Transactions.Repositories;
 
 public interface ITransactionRepository
 {
-    Task<PagedResult<Transaction>> GetAllAsync(int page, int pageSize);
-
-    Task<Transaction?> GetByIdAsync(Guid id);
-
-    Task<IEnumerable<Transaction>> GetByProductAsync(
-        Guid productId,
+    Task<PagedResult<Transaction>> GetAllAsync(
+        int page,
+        int pageSize,
+        string query = "",
         DateTime? from = null,
         DateTime? to = null,
         TransactionType? type = null,
-        int page = 1,
-        int pageSize = 20);
+        Guid? productId = null);
 
-    Task<Transaction> AddAsync(Transaction tx);
+    Task<Transaction?> GetByIdAsync(Guid id);
 
-    //Task<Transaction> UpdateAsync(Transaction tx);
+    Task<Transaction> AddAsync(Transaction transaction);
+
+    Task<Transaction> UpdateAsync(Transaction transaction);
 
     Task DeleteAsync(Guid id);
 }

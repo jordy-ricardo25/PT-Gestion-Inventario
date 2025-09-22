@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const productSchema = z.object({
+export const productFormSchema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
   price: z.coerce
@@ -10,20 +10,14 @@ export const productSchema = z.object({
     .number()
     .int()
     .nonnegative(),
-  categoryId: z.string().uuid().optional().nullable(),
+  categoryId: z.uuid().optional().nullable(),
 });
 
-export type ProductFormValues = z.infer<typeof productSchema>;
+export type ProductFormValues = z.infer<typeof productFormSchema>;
 
-export const transactionSchema = z.object({
-  date: z
-    .preprocess(
-      (v) => (v instanceof Date ? v : v ? new Date(v as string) : new Date()),
-      z.date()
-    )
-    .optional(),
-  productId: z.string().uuid().optional().nullable(),
-  type: z.enum(["Purchase", "Sale"]),
+export const transactionFormSchema = z.object({
+  productId: z.uuid().optional().nullable(),
+  type: z.string(),
   quantity: z.coerce
     .number()
     .int()
@@ -35,4 +29,30 @@ export const transactionSchema = z.object({
   detail: z.string().max(500).optional().nullable(),
 });
 
-export type TransactionFormValues = z.infer<typeof transactionSchema>;
+export type TransactionFormValues = z.infer<typeof transactionFormSchema>;
+
+export const transactionFilterSchema = z.object({
+  productId: z.union([z.uuid(), z.literal(""), z.undefined()])
+    .transform((val) => (val === "" ? undefined : val))
+    .optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  type: z.string().optional(),
+});
+
+export type TransactionFilterValues = z.infer<typeof transactionFilterSchema>;
+
+export const productFilterSchema = z.object({
+  categoryId: z.union([z.uuid(), z.literal(""), z.undefined()])
+    .transform((val) => (val === "" ? undefined : val))
+    .optional(),
+  min: z.union([z.number(), z.nan(), z.undefined()])
+    .transform((v) => (typeof v === "number" && !isNaN(v) ? v : undefined))
+    .optional(),
+
+  max: z.union([z.number(), z.nan(), z.undefined()])
+    .transform((v) => (typeof v === "number" && !isNaN(v) ? v : undefined))
+    .optional(),
+});
+
+export type ProductFilterValues = z.infer<typeof productFilterSchema>;

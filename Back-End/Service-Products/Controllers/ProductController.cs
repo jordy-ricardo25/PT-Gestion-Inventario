@@ -11,16 +11,25 @@ public sealed class ProductController : ControllerBase
 {
     private readonly IProductService _service;
 
-    public ProductController(IProductService service) => _service = service;
+    public ProductController(IProductService service)
+    {
+        _service = service;
+    }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<Product>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<PagedResult<Product>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string q = "",
+        [FromQuery] Guid? categoryId = null,
+        [FromQuery] int? min = null,
+        [FromQuery] int? max = null)
     {
-        return Ok(await _service.GetAllAsync(page, pageSize));
+        return Ok(await _service.GetAllAsync(page, pageSize, q, categoryId, min, max));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetById(Guid id)
+    public async Task<ActionResult<Product>> GetById([FromRoute] Guid id)
     {
         var px = await _service.GetByIdAsync(id);
 
@@ -45,7 +54,9 @@ public sealed class ProductController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<Product>> Update([FromRoute] Guid id, [FromBody] ProductDto request)
+    public async Task<ActionResult<Product>> Update(
+        [FromRoute] Guid id,
+        [FromBody] ProductDto request)
     {
         var px = new Product
         {
@@ -58,13 +69,35 @@ public sealed class ProductController : ControllerBase
             CategoryId = request.CategoryId
         };
 
-        return Ok(await _service.UpdateAsync(id, px));
+        try
+        {
+            return Ok(await _service.UpdateAsync(id, px));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al actualizar el producto." });
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        await _service.DeleteAsync(id);
-        return NoContent();
+        try
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al eliminar el producto." });
+        }
     }
 }

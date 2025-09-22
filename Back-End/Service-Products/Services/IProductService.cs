@@ -5,7 +5,13 @@ namespace Service.Products.Services;
 
 public interface IProductService
 {
-    Task<PagedResult<Product>> GetAllAsync(int page, int pageSize);
+    Task<PagedResult<Product>> GetAllAsync(
+        int page,
+        int pageSize,
+        string query,
+        Guid? categoryId = null,
+        int? min = null,
+        int? max = null);
 
     Task<Product?> GetByIdAsync(Guid id);
 

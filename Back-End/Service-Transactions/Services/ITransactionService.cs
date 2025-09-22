@@ -5,21 +5,20 @@ namespace Service.Transactions.Services;
 
 public interface ITransactionService
 {
-    Task<PagedResult<Transaction>> GetAllAsync(int page, int pageSize);
-
-    Task<Transaction?> GetByIdAsync(Guid id);
-
-    Task<IEnumerable<Transaction>> GetByProductAsync(
-        Guid productId,
+    Task<PagedResult<Transaction>> GetAllAsync(
+        int page,
+        int pageSize,
+        string query = "",
         DateTime? from = null,
         DateTime? to = null,
         TransactionType? type = null,
-        int page = 1,
-        int pageSize = 20);
+        Guid? productId = null);
 
-    Task<Transaction> CreateAsync(Transaction tx);
+    Task<Transaction?> GetByIdAsync(Guid id);
 
-    //Task<Transaction> UpdateAsync(Guid id, Transaction tx);
+    Task<Transaction> CreateAsync(Transaction transaction);
+
+    Task<Transaction> UpdateAsync(Guid id, Transaction transaction);
 
     Task DeleteAsync(Guid id);
 }

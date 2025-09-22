@@ -1,15 +1,22 @@
 'use client';
+
 import { useState } from 'react';
 
 import { ProductTable } from '@lib/components/ProductTable';
 import { ProductForm } from '@lib/components/ProductForm';
+import { ProductDelete } from '@/lib/components/ProductDelete';
+import { Dialog } from '@/lib/components/Dialog';
+
+import { ProductFilter } from '@/lib/components/ProductFilter';
 import { Product } from '@lib/types/Product';
-import { DeleteProductDialog } from '@/lib/components/DeleteProductDialog';
 
 export default function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState<Product | null>(null);
   const [creating, setCreating] = useState(false);
+  const [filtering, setFiltering] = useState(false);
+
+  const [filters, setFilters] = useState<any | null>(null);
 
   return (
     <main className="flex flex-col min-h-screen items-center justify-center">
@@ -35,29 +42,23 @@ export default function ProductsPage() {
 
       <section className="w-full p-6">
         <div className="rounded-2xl border bg-white p-4">
-          <ProductTable onEdit={setEditing} onDelete={setDeleting} />
+          <ProductTable
+            filters={filters}
+            onEdit={setEditing}
+            onDelete={setDeleting}
+            onFilter={() => setFiltering(true)}
+          />
         </div>
       </section>
 
       {(creating || editing) && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
-          <div className="w-full max-w-lg rounded-2xl border bg-white p-6 shadow-xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">
-                {editing ? 'Editar producto' : 'Crear producto'}
-              </h2>
-              <button
-                onClick={() => {
-                  setCreating(false);
-                  setEditing(null);
-                }}
-                className="rounded-md px-2 py-1 text-sm hover:bg-neutral-100"
-                aria-label="Cerrar"
-              >
-                ✕
-              </button>
-            </div>
-
+        <Dialog
+          title={editing ? "Editar producto" : "Crear producto"}
+          onClose={() => {
+            setCreating(false);
+            setEditing(null);
+          }}
+          content={(
             <ProductForm
               product={editing ?? undefined}
               onDone={() => {
@@ -65,12 +66,37 @@ export default function ProductsPage() {
                 setEditing(null);
               }}
             />
-          </div>
-        </div>
+          )} />
       )}
 
       {deleting && (
-        <DeleteProductDialog product={deleting} onClose={() => setDeleting(null)} />
+        <Dialog
+          title="Eliminar producto"
+          content={(
+            <ProductDelete
+              product={deleting}
+              onClose={() => { setDeleting(null) }}
+            />
+          )}
+        />
+      )}
+
+      {filtering && (
+        <Dialog
+          title="Filtrar productos"
+          onClose={() => { setFiltering(false) }}
+          content={(
+            <ProductFilter
+              filters={filters}
+              onClose={(f) => {
+                if (f) setFilters(f);
+                else setFilters(null);
+
+                setFiltering(false);
+              }}
+            />
+          )}
+        />
       )}
     </main>
   );

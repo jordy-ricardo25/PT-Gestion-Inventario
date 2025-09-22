@@ -11,22 +11,26 @@ public sealed class CategoryController : ControllerBase
 {
     private readonly ICategoryService _service;
 
-    public CategoryController(ICategoryService service) => _service = service;
+    public CategoryController(ICategoryService categoryService)
+    {
+        _service = categoryService;
+    }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResult<Category>>> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<PagedResult<Category>>> GetAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string q = "")
     {
-        return Ok(await _service.GetAllAsync(page, pageSize));
+        return Ok(await _service.GetAllAsync(page, pageSize, q));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Category>> GetById(Guid id)
+    public async Task<ActionResult<Category>> GetById([FromRoute] Guid id)
     {
         var category = await _service.GetByIdAsync(id);
 
-        if (category is null) return NotFound();
-
-        return Ok(category);
+        return category is null ? NotFound() : Ok(category);
     }
 
     [HttpPost]
@@ -41,20 +45,48 @@ public sealed class CategoryController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<Category>> Update([FromRoute] Guid id, [FromBody] CategoryDto request)
+    public async Task<ActionResult<Category>> Update(
+        [FromRoute] Guid id,
+        [FromBody] CategoryDto request)
     {
         var cx = new Category
         {
             Name = request.Name
         };
 
-        return Ok(await _service.UpdateAsync(id, cx));
+        try
+        {
+            return Ok(await _service.UpdateAsync(id, cx));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al actualizar la categoría." });
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete([FromRoute] Guid id)
     {
-        await _service.DeleteAsync(id);
-        return NoContent();
+        try
+        {
+            await _service.DeleteAsync(id);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, new { message = "Ocurrió un error inesperado al eliminar la categoría." });
+        }
     }
 }

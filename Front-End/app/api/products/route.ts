@@ -10,12 +10,21 @@ export async function GET(req: NextRequest) {
   const order = searchParams.get('order') ?? '';
   const q = searchParams.get('q') ?? '';
 
+  const categoryId = searchParams.get('categoryId') ?? '';
+  const min = searchParams.get('min') ?? '';
+  const max = searchParams.get('max') ?? '';
+
   const upstream = new URL(`${BASE}/Product`);
   upstream.searchParams.set('page', String(page));
   upstream.searchParams.set('pageSize', String(pageSize));
+
   if (sort) upstream.searchParams.set('sort', sort);
   if (order) upstream.searchParams.set('order', order);
   if (q) upstream.searchParams.set('q', q);
+
+  if (categoryId) upstream.searchParams.set('categoryId', categoryId);
+  if (min) upstream.searchParams.set('min', min);
+  if (max) upstream.searchParams.set('max', max);
 
   const r = await fetch(upstream, { cache: 'no-store' });
 
@@ -46,7 +55,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const r = await fetch(`${BASE}/Product`, { method: 'POST', body, headers: { 'Content-Type': 'application/json' } });
+  const r = await fetch(`${BASE}/Product`, { method: 'POST', body: await req.text(), headers: { 'Content-Type': 'application/json' } });
   return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': 'application/json' } });
 }

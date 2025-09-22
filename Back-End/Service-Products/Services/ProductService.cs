@@ -8,11 +8,20 @@ public sealed class ProductService : IProductService
 {
     private readonly IProductRepository _repo;
 
-    public ProductService(IProductRepository repo) => _repo = repo;
-
-    public Task<PagedResult<Product>> GetAllAsync(int page, int pageSize)
+    public ProductService(IProductRepository repo)
     {
-        return _repo.GetAllAsync(page, pageSize);
+        _repo = repo;
+    }
+
+    public Task<PagedResult<Product>> GetAllAsync(
+        int page,
+        int pageSize,
+        string query,
+        Guid? categoryId = null,
+        int? min = null,
+        int? max = null)
+    {
+        return _repo.GetAllAsync(page, pageSize, query, categoryId, min, max);
     }
 
     public Task<Product?> GetByIdAsync(Guid id)
@@ -27,7 +36,8 @@ public sealed class ProductService : IProductService
 
     public async Task<Product> UpdateAsync(Guid id, Product producto)
     {
-        var existing = await _repo.GetByIdAsync(id) ?? throw new Exception("Producto no encontrado");
+        var existing = await _repo.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException("Producto no encontrado");
 
         existing.Name = producto.Name;
         existing.Description = producto.Description;
@@ -41,6 +51,9 @@ public sealed class ProductService : IProductService
 
     public async Task DeleteAsync(Guid id)
     {
+        var _ = await _repo.GetByIdAsync(id)
+            ?? throw new KeyNotFoundException("Producto no encontrado");
+
         await _repo.DeleteAsync(id);
     }
 }

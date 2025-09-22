@@ -1,4 +1,16 @@
+import { NextRequest } from 'next/server';
+
 const BASE = process.env.INTERNAL_TRANSACTIONS_API!;
+
+export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+  const r = await fetch(`${BASE}/Transaction/${params.id}`, { cache: 'no-store' });
+  return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': 'application/json' } });
+}
+
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  const r = await fetch(`${BASE}/Transaction/${params.id}`, { method: 'PUT', body: await req.text(), headers: { 'Content-Type': 'application/json' } });
+  return new Response(await r.text(), { status: r.status, headers: { 'Content-Type': 'application/json' } });
+}
 
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   const r = await fetch(`${BASE}/Transaction/${params.id}`, { method: 'DELETE' });
