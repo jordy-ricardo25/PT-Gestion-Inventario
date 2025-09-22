@@ -46,25 +46,6 @@ public sealed class ProductRepository : IProductRepository
         };
     }
 
-    public async Task<PagedResult<Product>> GetByCategoryAsync(Guid id, int page, int pageSize)
-    {
-        var total = await _context.Products.CountAsync();
-
-        var items = await _context.Products
-            .Where(p => p.CategoryId == id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-
-        return new PagedResult<Product>
-        {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            Total = total
-        };
-    }
-
     public async Task<Product?> GetByIdAsync(Guid id)
     {
         return await _context.Products.FindAsync(id);

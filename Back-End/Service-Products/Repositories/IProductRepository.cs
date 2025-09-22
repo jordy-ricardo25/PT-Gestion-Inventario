@@ -13,8 +13,6 @@ public interface IProductRepository
         int? min = null,
         int? max = null);
 
-    Task<PagedResult<Product>> GetByCategoryAsync(Guid id, int page, int pageSize);
-
     Task<Product?> GetByIdAsync(Guid id);
 
     Task<Product> AddAsync(Product producto);

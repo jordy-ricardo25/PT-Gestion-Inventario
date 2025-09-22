@@ -16,11 +16,6 @@ public interface ITransactionService
 
     Task<Transaction?> GetByIdAsync(Guid id);
 
-    Task<PagedResult<Transaction>> GetByProductAsync(
-        Guid productId,
-        int page = 1,
-        int pageSize = 10);
-
     Task<Transaction> CreateAsync(Transaction tx);
 
     //Task<Transaction> UpdateAsync(Guid id, Transaction tx);

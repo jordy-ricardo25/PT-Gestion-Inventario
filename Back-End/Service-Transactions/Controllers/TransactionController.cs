@@ -36,17 +36,6 @@ public sealed class TransactionController : ControllerBase
         return tx is null ? NotFound() : Ok(tx);
     }
 
-    [HttpGet("by-product/{productId}")]
-    public async Task<ActionResult<PagedResult<Transaction>>> GetByProduct(
-        [FromRoute] Guid productId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
-    {
-        if (page <= 0 || pageSize <= 0) return BadRequest("page y pageSize deben ser > 0.");
-
-        return Ok(await _service.GetByProductAsync(productId, page, pageSize));
-    }
-
     [HttpPost]
     public async Task<ActionResult<Transaction>> Create([FromBody] TransactionDto request)
     {

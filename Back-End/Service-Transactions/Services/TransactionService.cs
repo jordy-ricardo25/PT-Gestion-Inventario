@@ -33,14 +33,6 @@ public sealed class TransactionService : ITransactionService
         return _repo.GetByIdAsync(id);
     }
 
-    public Task<PagedResult<Transaction>> GetByProductAsync(
-        Guid productId,
-        int page = 1,
-        int pageSize = 20)
-    {
-        return _repo.GetByProductAsync(productId, page, pageSize);
-    }
-
     public async Task<Transaction> CreateAsync(Transaction tx)
     {
         if (tx.TotalPrice <= 0m) tx.TotalPrice = tx.UnitPrice * tx.Quantity;

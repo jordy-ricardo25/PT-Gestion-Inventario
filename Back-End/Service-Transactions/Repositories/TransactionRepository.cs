@@ -53,28 +53,6 @@ public sealed class TransactionRepository : ITransactionRepository
         return _context.Transactions.FirstOrDefaultAsync(t => t.Id == id)!;
     }
 
-    public async Task<PagedResult<Transaction>> GetByProductAsync(
-        Guid productId, int page = 1, int pageSize = 20)
-    {
-        var q = _context.Transactions.Where(t => t.ProductId == productId);
-
-        var total = await q.CountAsync();
-
-        var items = await q
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .AsNoTracking()
-            .ToListAsync();
-
-        return new PagedResult<Transaction>
-        {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            Total = total
-        };
-    }
-
     public async Task<Transaction> AddAsync(Transaction tx)
     {
         _context.Transactions.Add(tx);
